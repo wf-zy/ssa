@@ -1,0 +1,413 @@
+<template>
+	<view class="container">
+		<!-- 顶部用户信息区域 -->
+		<view class="profile-section">
+			<view class="avatar-container" @click="changeAvatar">
+				<image v-if="userInfo.avatar" :src="userInfo.avatar" class="avatar" />
+				<view v-else class="avatar-placeholder">
+					<text class="avatar-icon">👤</text>
+				</view>
+			</view>
+			<text class="username">{{ userInfo.nickname || '未设置昵称' }}</text>
+		</view>
+		
+		<!-- 操作按钮区域 - 更换头像和修改昵称在同一行 -->
+		<view class="actions-section">
+			<view class="action-row">
+				<view class="action-item" @click="changeAvatar">
+					<text class="action-text">更换头像</text>
+					<text class="arrow">›</text>
+				</view>
+				<view class="divider"></view>
+				<view class="action-item" @click="changeNickname">
+					<text class="action-text">修改昵称</text>
+					<text class="arrow">›</text>
+				</view>
+			</view>
+		</view>
+		
+		<!-- 用户信息区域 -->
+		<view class="info-section">
+			<view class="info-item" @click="showPhoneActionSheet">
+				<text class="info-label">手机号</text>
+				<text class="info-value">{{ userInfo.phone || '未绑定' }}</text>
+				<text class="arrow">›</text>
+			</view>
+			
+			<view class="info-item" @click="showPasswordActionSheet">
+				<text class="info-label">密码</text>
+				<text class="info-value">******</text>
+				<text class="arrow">›</text>
+			</view>
+			
+			<view class="info-item">
+				<text class="info-label">注册日期</text>
+				<text class="info-value">{{ userInfo.registerDate || '未知' }}</text>
+				<text class="arrow">›</text>
+			</view>
+		</view>
+		
+		<!-- 账号操作区域 -->
+		<view class="account-section">
+			<view class="account-item logout-item" @click="logout">
+				<text class="account-text">退出账号</text>
+			</view>
+			<view class="account-item deactivate-item" @click="deactivateAccount">
+				<text class="account-text">注销账号</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				userInfo: {
+					avatar: '', // 可以是默认头像或用户上传的头像路径
+					nickname: '游客',
+					phone: '138****8888',
+					registerDate: '2023-01-15'
+				}
+			}
+		},
+		onLoad() {
+			// 页面加载时获取用户信息
+			this.loadUserInfo();
+		},
+		methods: {
+			loadUserInfo() {
+				// 模拟加载用户信息
+				// 在实际项目中，这里应该是从本地存储或服务器获取用户信息
+				const savedUserInfo = uni.getStorageSync('userInfo');
+				if (savedUserInfo) {
+					this.userInfo = savedUserInfo;
+				}
+			},
+			changeAvatar() {
+				// 更换头像功能
+				uni.chooseImage({
+					count: 1,
+					sizeType: ['original', 'compressed'],
+					sourceType: ['album', 'camera'],
+					success: (res) => {
+						this.userInfo.avatar = res.tempFilePaths[0];
+						// 保存到本地存储
+						uni.setStorageSync('userInfo', this.userInfo);
+						
+						uni.showToast({
+							title: '头像更换成功',
+							icon: 'success'
+						});
+					},
+					fail: () => {
+						uni.showToast({
+							title: '取消选择',
+							icon: 'none'
+						});
+					}
+				});
+			},
+			changeNickname() {
+				// 修改昵称功能
+				uni.showModal({
+					title: '修改昵称',
+					placeholderText: '请输入新昵称',
+					editable: true,
+					success: (res) => {
+						if (res.confirm && res.value) {
+							this.userInfo.nickname = res.value;
+							// 保存到本地存储
+							uni.setStorageSync('userInfo', this.userInfo);
+							
+							uni.showToast({
+								title: '昵称修改成功',
+								icon: 'success'
+							});
+						} else if (res.cancel) {
+							uni.showToast({
+								title: '已取消',
+								icon: 'none'
+							});
+						}
+					}
+				});
+			},
+			showPhoneActionSheet() {
+				// 显示手机号操作选项
+				uni.showActionSheet({
+					itemList: ['查看手机号', '更换手机号', '解绑手机号'],
+					success: (res) => {
+						if (res.tapIndex === 0) {
+							uni.showToast({
+								title: `手机号：${this.userInfo.phone}`,
+								icon: 'none'
+							});
+						} else if (res.tapIndex === 1) {
+							uni.showToast({
+								title: '更换手机号功能待实现',
+								icon: 'none'
+							});
+						} else if (res.tapIndex === 2) {
+							uni.showToast({
+								title: '解绑手机号功能待实现',
+								icon: 'none'
+							});
+						}
+					}
+				});
+			},
+			showPasswordActionSheet() {
+				// 显示密码操作选项
+				uni.showActionSheet({
+					itemList: ['修改密码', '忘记密码', '密码安全'],
+					success: (res) => {
+						uni.showToast({
+							title: '密码相关功能待实现',
+							icon: 'none'
+						});
+					}
+				});
+			},
+			logout() {
+				// 退出账号功能
+				uni.showModal({
+					title: '确认退出',
+					content: '确定要退出登录吗？',
+					success: (res) => {
+						if (res.confirm) {
+							// 清除用户信息
+							uni.clearStorage();
+							
+							uni.showToast({
+								title: '已退出',
+								icon: 'success'
+							});
+							
+							// 可以在这里跳转到登录页面，如果有的话
+							// uni.redirectTo({
+							// 	url: '/pages/login/login'
+							// });
+						}
+					}
+				});
+			},
+			deactivateAccount() {
+				// 注销账号功能
+				uni.showModal({
+					title: '警告',
+					content: '注销账号将永久删除您的所有数据，且无法恢复。确定要注销吗？',
+					confirmColor: '#ff4444',
+					success: (res) => {
+						if (res.confirm) {
+							uni.showModal({
+								title: '请输入密码确认',
+								placeholderText: '请输入密码',
+								editable: true,
+								success: (pwdRes) => {
+									if (pwdRes.confirm && pwdRes.value) {
+										// 这里应该有验证密码的逻辑
+										console.log('用户输入的密码:', pwdRes.value);
+										
+										// 模拟注销过程
+										uni.showLoading({
+											title: '正在注销...'
+										});
+										
+										setTimeout(() => {
+											uni.hideLoading();
+											uni.showToast({
+												title: '账号已注销',
+												icon: 'success'
+											});
+											
+											// 清除所有用户数据
+											uni.clearStorage();
+											
+											// 可以跳转到注册页面或主页
+											// uni.reLaunch({
+											// 	url: '/pages/index/index'
+											// });
+										}, 1500);
+									}
+								}
+							});
+						}
+					}
+				});
+			}
+		}
+	}
+</script>
+
+<style>
+	/* 页面整体样式 */
+	container {
+		display: flex;
+		flex-direction: column;
+		min-height: 100vh;
+		background-color: #f5f5f5;
+	}
+	
+	/* 顶部用户信息区域 */
+	.profile-section {
+		background-color: #ffffff;
+		padding: 60rpx 40rpx 40rpx;
+		text-align: center;
+		margin-bottom: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
+	}
+	
+	.avatar-container {
+		margin: 0 auto 20rpx;
+	}
+	
+	.avatar {
+		width: 120rpx;
+		height: 120rpx;
+		border-radius: 50%;
+		border: 4rpx solid #e0e0e0;
+		object-fit: cover;
+	}
+	
+	.avatar-placeholder {
+		width: 120rpx;
+		height: 120rpx;
+		border-radius: 50%;
+		border: 4rpx solid #e0e0e0;
+		background-color: #f0f0f0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	
+	.avatar-icon {
+		font-size: 60rpx;
+		color: #aaa;
+	}
+	
+	.username {
+		font-size: 36rpx;
+		font-weight: bold;
+		color: #333;
+		display: block;
+		margin-top: 10rpx;
+	}
+	
+	/* 操作按钮区域 */
+	.actions-section {
+		background-color: #ffffff;
+		margin: 0 20rpx 20rpx;
+		border-radius: 16rpx;
+		overflow: hidden;
+		box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
+	}
+	
+	.action-row {
+		display: flex;
+		align-items: center;
+	}
+	
+	.action-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 30rpx 40rpx;
+		border-bottom: 1rpx solid #f0f0f0;
+		background-color: #ffffff;
+	}
+	
+	.action-item:last-child {
+		border-bottom: none;
+	}
+	
+	.action-text {
+		font-size: 30rpx;
+		color: #333;
+	}
+	
+	.arrow {
+		font-size: 36rpx;
+		color: #ccc;
+	}
+	
+	.divider {
+		width: 1rpx;
+		height: 40rpx;
+		background-color: #f0f0f0;
+		margin: 0 20rpx;
+	}
+	
+	/* 用户信息区域 */
+	.info-section {
+		background-color: #ffffff;
+		margin: 0 20rpx 20rpx;
+		border-radius: 16rpx;
+		overflow: hidden;
+		box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
+	}
+
+	.info-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 30rpx 40rpx;
+		border-bottom: 1rpx solid #f0f0f0;
+	}
+
+	.info-item:last-child {
+		border-bottom: none;
+	}
+
+	.info-label {
+		font-size: 30rpx;
+		color: #333;
+		text-align: left;  /* 左对齐 */
+	}
+
+	.info-value {
+		font-size: 28rpx;
+		color: #666;
+		margin-left: 20rpx;  /* 左边距替代右边距 */
+		flex: 1;
+		text-align: right;
+	}
+	
+	/* 账号操作区域 */
+	.account-section {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		padding: 0 40rpx 40rpx;
+		gap: 20rpx;
+	}
+
+	.account-item {
+		height: 80rpx;
+		border-radius: 12rpx;
+		font-size: 30rpx;
+		display: flex;
+		justify-content: flex-start; /* 左对齐 */
+		align-items: center;
+		border: none;
+		padding-left: 30rpx; /* 添加左边距 */
+	}
+
+	.logout-item {
+		background-color: #ffffff;
+		color: #333;
+		border: 1rpx solid #ddd;
+	}
+
+	.deactivate-item {
+		background-color: #ff4444;
+		color: #ffffff;
+	}
+
+	.account-text {
+		font-size: 30rpx;
+		color: inherit;
+		text-align: left; /* 文字左对齐 */
+	}
+</style>

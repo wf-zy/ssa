@@ -1,11 +1,14 @@
 <template>
 	<view class="container">
-		<!-- 顶部标题栏 -->
-		<view class="header">
-			<text class="title">星海册</text>
-			<view class="search-bar">
-				<text class="create-text">创建手账线</text>
-				<text class="search-icon">🔍</text>
+		<!-- 顶部固定区域容器 -->
+		<view class="static-top">
+			<!-- 顶部标题栏 -->
+			<view class="header">
+				<text class="title">星海册</text>
+				<view class="search-bar">
+					<text class="create-text">创建手账线</text>
+					<text class="search-icon">🔍</text>
+				</view>
 			</view>
 		</view>
 
@@ -82,8 +85,9 @@
 
 
 		<!-- 底部导航 -->
-		<view class="bottom-nav">
-			<view class="nav-item active">
+		<!-- 注释掉自定义底部导航，使用uni-app原生tabBar -->
+		<!-- <view class="bottom-nav">
+			<view class="nav-item">
 				<text class="nav-icon">🏠</text>
 				<text class="nav-text">首页</text>
 			</view>
@@ -91,13 +95,58 @@
 				<text class="nav-icon">🔍</text>
 				<text class="nav-text">发现</text>
 			</view>
-			<view class="nav-item">
+			<view class="nav-item" @click="showPlanModal">
 				<text class="nav-icon">📋</text>
 				<text class="nav-text">创作</text>
 			</view>
-			<view class="nav-item">
+			<view class="nav-item" @click="navigateToMyPage">
 				<text class="nav-icon">👤</text>
 				<text class="nav-text">我的</text>
+			</view>
+		</view> -->
+		
+		<!-- 浮动创作按钮 -->
+		<view class="fab-button" @click="showPlanModal">
+			<text class="fab-icon">+</text>
+		</view>
+		
+		<!-- 新增计划弹窗 -->
+		<view class="modal-overlay" v-if="showModal" @click="hideModal">
+			<view class="modal-content" @click.stop>
+				<view class="modal-header">
+					<text class="modal-title">新增计划</text>
+					<text class="modal-close" @click="hideModal">×</text>
+				</view>
+				<view class="modal-body">
+					<view class="form-group">
+						<text class="form-label">目的地</text>
+						<input class="form-input" v-model="planData.destination" placeholder="请输入目的地" />
+					</view>
+					<view class="form-group">
+						<text class="form-label">标题</text>
+						<input class="form-input" v-model="planData.title" placeholder="请输入标题" />
+					</view>
+					<view class="form-group">
+						<text class="form-label">封面</text>
+						<view class="cover-upload" @click="selectCoverImage">
+							<image v-if="planData.cover" :src="planData.cover" class="cover-preview" />
+							<view v-else class="cover-placeholder">
+								<text class="upload-icon">+</text>
+								<text class="upload-text">选择封面</text>
+							</view>
+						</view>
+					</view>
+					<view class="form-group">
+						<text class="form-label">出发时间</text>
+						<picker mode="date" :value="planData.startDate" @change="onDateChange">
+							<view class="picker">{{ planData.startDate || '请选择出发时间' }}</view>
+						</picker>
+					</view>
+				</view>
+				<view class="modal-footer">
+					<button class="btn-cancel" @click="hideModal">取消</button>
+					<button class="btn-save" @click="savePlan">保存</button>
+				</view>
 			</view>
 		</view>
 	</view>
@@ -107,7 +156,14 @@
 	export default {
 		data() {
 			return {
-				photoList: []
+				photoList: [],
+				showModal: false,
+				planData: {
+					destination: '',
+					title: '',
+					cover: '',
+					startDate: ''
+				}
 			}
 		},
 		onLoad() {
@@ -125,7 +181,53 @@
 					list.push(item)
 				}
 				this.photoList = list
+			},
+			showPlanModal() {
+				this.showModal = true;
+			},
+			hideModal() {
+				this.showModal = false;
+				// 清空表单数据
+				this.planData = {
+					destination: '',
+					title: '',
+					cover: '',
+					startDate: ''
+				};
+			},
+			selectCoverImage() {
+				// 这里可以集成实际的图片选择功能
+				// 目前只是演示，使用示例图片
+				uni.chooseImage({
+					count: 1,
+					sizeType: ['original', 'compressed'],
+					sourceType: ['album', 'camera'],
+					success: (res) => {
+						this.planData.cover = res.tempFilePaths[0];
+					}
+				});
+			},
+			onDateChange(e) {
+				this.planData.startDate = e.detail.value;
+			},
+			savePlan() {
+				// 打印填写的信息
+				console.log('新增计划信息：');
+				console.log('目的地:', this.planData.destination);
+				console.log('标题:', this.planData.title);
+				console.log('封面:', this.planData.cover);
+				console.log('出发时间:', this.planData.startDate);
+				
+				// 这里可以添加实际的保存逻辑
+				uni.showToast({
+					title: '计划已保存',
+					icon: 'success'
+				});
+				
+				// 重置表单并关闭弹窗
+				this.hideModal();
 			}
+			// 移除 navigateToMyPage 方法，因为使用原生tabBar
 		}
 	}
 </script>
@@ -465,5 +567,185 @@
 
 	.nav-item.active .nav-icon {
 		color: #4a5568;
+	}
+	
+	/* 弹窗样式 */
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1000;
+	}
+	
+	.modal-content {
+		background-color: #fff;
+		border-radius: 20rpx;
+		width: 90%;
+		max-height: 80%;
+		overflow-y: auto;
+		position: relative;
+	}
+	
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 30rpx 40rpx 20rpx;
+		border-bottom: 1rpx solid #eee;
+	}
+	
+	.modal-title {
+		font-size: 36rpx;
+		font-weight: bold;
+		color: #333;
+	}
+	
+	.modal-close {
+		font-size: 48rpx;
+		color: #999;
+		line-height: 1;
+		cursor: pointer;
+	}
+	
+	.modal-body {
+		padding: 30rpx 40rpx;
+	}
+	
+	.form-group {
+		margin-bottom: 40rpx;
+	}
+	
+	.form-label {
+		display: block;
+		font-size: 28rpx;
+		color: #333;
+		margin-bottom: 16rpx;
+		font-weight: bold;
+	}
+	
+	.form-input {
+		width: 100%;
+		height: 80rpx;
+		border: 2rpx solid #ddd;
+		border-radius: 12rpx;
+		padding: 0 20rpx;
+		font-size: 28rpx;
+		box-sizing: border-box;
+		outline: none;
+	}
+	
+	.form-input:focus {
+		border-color: #546e7a;
+	}
+	
+	.cover-upload {
+		width: 100%;
+		height: 200rpx;
+		border: 2rpx dashed #ddd;
+		border-radius: 12rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		overflow: hidden;
+		background-color: #f9f9f9;
+		cursor: pointer;
+	}
+	
+	.cover-preview {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	
+	.cover-placeholder {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	.upload-icon {
+		font-size: 60rpx;
+		color: #ccc;
+		margin-bottom: 10rpx;
+	}
+	
+	.upload-text {
+		font-size: 24rpx;
+		color: #999;
+	}
+	
+	.picker {
+		width: 100%;
+		height: 80rpx;
+		border: 2rpx solid #ddd;
+		border-radius: 12rpx;
+		padding: 0 20rpx;
+		font-size: 28rpx;
+		line-height: 80rpx;
+		background-color: #fff;
+		box-sizing: border-box;
+	}
+	
+	.modal-footer {
+		display: flex;
+		justify-content: space-between;
+		padding: 20rpx 40rpx 40rpx;
+		gap: 20rpx;
+	}
+	
+	.btn-cancel, .btn-save {
+		flex: 1;
+		height: 80rpx;
+		border-radius: 12rpx;
+		font-size: 28rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: none;
+		outline: none;
+		cursor: pointer;
+	}
+	
+	.btn-cancel {
+		background-color: #f0f0f0;
+		color: #666;
+	}
+	
+	.btn-save {
+		background-color: #546e7a;
+		color: #fff;
+	}
+	
+	.btn-cancel:hover, .btn-save:hover {
+		opacity: 0.9;
+	}
+	
+	/* 浮动创作按钮 */
+	.fab-button {
+		position: fixed;
+		bottom: 120rpx; /* 为tabBar留出空间 */
+		right: 40rpx;
+		width: 100rpx;
+		height: 100rpx;
+		border-radius: 50%;
+		background-color: #546e7a;
+		box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.3);
+		z-index: 99;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+	
+	.fab-icon {
+		font-size: 50rpx;
+		color: white;
+		line-height: 1;
 	}
 </style>
