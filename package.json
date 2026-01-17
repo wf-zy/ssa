@@ -1,0 +1,28 @@
+{
+  "name": "ssa",
+  "version": "1.0.0",
+  "description": "星海册",
+  "main": "index.js",
+  "scripts": {
+    "dev": "uni -p app",
+    "build": "uni build -p app",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wf-zy/ssa.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wf-zy/ssa/issues"
+  },
+  "homepage": "https://github.com/wf-zy/ssa#readme",
+  "dependencies": {
+    "@dcloudio/uni-app": "^2.0.2-4080720251210002",
+    "@dcloudio/uni-components": "^3.0.0-alpha-3000020210521001",
+    "@dcloudio/uni-h5": "^2.0.2-4080720251210002",
+    "@dcloudio/uni-mp-weixin": "^2.0.2-4080720251210002"
+  }
+}

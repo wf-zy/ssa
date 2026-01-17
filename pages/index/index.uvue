@@ -1,0 +1,469 @@
+<template>
+	<view class="container">
+		<!-- 顶部标题栏 -->
+		<view class="header">
+			<text class="title">星海册</text>
+			<view class="search-bar">
+				<text class="create-text">创建手账线</text>
+				<text class="search-icon">🔍</text>
+			</view>
+		</view>
+
+		<!-- Banner 区域 -->
+		<view class="banner-area">
+			<view class="banner-frame">
+				<swiper class="banner-swiper" circular="true" autoplay="true" interval="3000" duration="500" indicator-dots="true" indicator-active-color="#fff" indicator-color="rgba(255,255,255,0.5)">
+					<swiper-item>
+						<image class="banner-image" src="https://picsum.photos/750/400?random=10" mode="aspectFill"></image>
+					</swiper-item>
+					<swiper-item>
+						<image class="banner-image" src="https://picsum.photos/750/400?random=11" mode="aspectFill"></image>
+					</swiper-item>
+					<swiper-item>
+						<image class="banner-image" src="https://picsum.photos/750/400?random=12" mode="aspectFill"></image>
+					</swiper-item>
+				</swiper>
+			</view>
+		</view>
+
+		<!-- 功能导航 -->
+		<view class="nav-container">
+			<view class="nav-item">
+				<view class="nav-icon-wrapper nav-bg">
+					<text class="nav-icon">🗺️</text>
+				</view>
+				<text class="nav-text">足迹地图</text>
+			</view>
+			<view class="nav-item">
+				<view class="nav-icon-wrapper nav-bg">
+					<text class="nav-icon">🎵</text>
+				</view>
+				<text class="nav-text">星海专辑</text>
+			</view>
+			<view class="nav-item">
+				<view class="nav-icon-wrapper nav-bg">
+					<text class="nav-icon">📋</text>
+				</view>
+				<text class="nav-text">旅行清单</text>
+			</view>
+			<view class="nav-item">
+				<view class="nav-icon-wrapper nav-bg">
+					<text class="nav-icon">📅</text>
+				</view>
+				<text class="nav-text">年度回顾</text>
+			</view>
+		</view>
+
+		<!-- 信息区域 -->
+		<view class="info-area">
+			<view class="divider-container">
+				<view class="memory-badge-center">
+					<view class="memory-inner">
+						<text class="memory-text">记忆集</text>
+					</view>
+				</view>
+			</view>
+		</view>
+			
+		<!-- 内容区域：可滚动部分 - 3列网格布局 -->
+		<scroll-view class="content-scroll" scroll-y="true">
+			<view class="content-area">
+				<view class="stamp-card-container" v-for="(item, index) in photoList" :key="index">
+					<view class="stamp-frame">
+						<image class="stamp-image" :src="item.url" mode="aspectFill"></image>
+					</view>
+					<view class="card-caption">
+						<text class="caption-text">{{item.title}}</text>
+						<text class="caption-text">{{item.subtitle}}</text>
+					</view>
+				</view>
+			</view>
+		</scroll-view>
+
+
+		<!-- 底部导航 -->
+		<view class="bottom-nav">
+			<view class="nav-item active">
+				<text class="nav-icon">🏠</text>
+				<text class="nav-text">首页</text>
+			</view>
+			<view class="nav-item">
+				<text class="nav-icon">🔍</text>
+				<text class="nav-text">发现</text>
+			</view>
+			<view class="nav-item">
+				<text class="nav-icon">📋</text>
+				<text class="nav-text">创作</text>
+			</view>
+			<view class="nav-item">
+				<text class="nav-icon">👤</text>
+				<text class="nav-text">我的</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				photoList: []
+			}
+		},
+		onLoad() {
+			this.initData()
+		},
+		methods: {
+			initData() {
+				const list = []
+				for (let i = 1; i <= 26; i++) {
+					const item = {
+						url: `https://picsum.photos/300/300?random=${i + 20}`,
+						title: '旅行记忆',
+						subtitle: `第${i}张`
+					}
+					list.push(item)
+				}
+				this.photoList = list
+			}
+		}
+	}
+</script>
+
+<style>
+	page {
+		background-color: #fcfbf6;
+		font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+		height: 100%; /* 确保page占满全屏 */
+	}
+	
+	.container {
+		/* 改为 Flex 布局，实现顶部固定、底部滚动 */
+		display: flex;
+		flex-direction: column;
+		height: 100vh;
+		overflow: hidden;
+	}
+	
+	/* 顶部固定区域容器 */
+	.static-top {
+		flex-shrink: 0; /* 防止顶部被压缩 */
+		background-color: #fcfbf6;
+		z-index: 50;
+	}
+
+	/* 顶部标题栏样式 */
+	.header {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		padding: 40rpx 30rpx 20rpx;  /* 增加顶部和底部内边距以增大区域高度 */
+		background-color: transparent;
+	}
+	
+	.title {
+		font-size: 60rpx;  /* 增大字体 */
+		font-weight: bold;
+		color: #888888;  /* 灰白色字体 */
+		font-style: italic;
+		font-family: serif;
+		text-shadow: 2rpx 2rpx 4rpx rgba(0,0,0,0.3);  /* 添加阴影以增强艺术效果 */
+		letter-spacing: 4rpx;  /* 字间距以增强艺术感 */
+		position: relative;  /* 添加相对定位 */
+		top: 10rpx;  /* 向下偏移 */
+	}
+	
+	/* 搜索栏样式 */
+	.search-bar {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		background-color: #fff;
+		border: 2rpx solid #374151; /* 深色边框 */
+		border-radius: 34rpx; /* 胶囊形状 */
+		padding: 10rpx 24rpx;
+		width: 300rpx;
+	}
+	
+	.create-text {
+		font-size: 28rpx;
+		color: #4b5563;
+		display: flex; /* 确保显示 */
+	}
+	
+	.search-icon {
+		font-size: 28rpx;
+		display: flex; /* 确保显示 */
+	}
+	
+	/* 导航样式优化 */
+	.nav-container {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-around;
+		padding: 30rpx 20rpx;
+	}
+	
+	.nav-item {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.nav-icon-wrapper {
+		width: 100rpx;
+		height: 100rpx;
+		border-radius: 50%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-bottom: 12rpx;
+		border: 2rpx solid #374151; /* 统一深色边框 */
+	}
+
+	.nav-bg {
+		background-color: #dbece4; /* 统一的灰绿色背景 */
+	}
+
+	.nav-icon {
+		font-size: 50rpx;
+		/* 替换为简单的图标字符，避免乱码 */
+		font-weight: bold;
+		color: #2c3e50;
+	}
+	
+	/* 移除旧的彩色背景类 */
+	.nav-bg-1, .nav-bg-2, .nav-bg-3, .nav-bg-4 { background-color: transparent; }
+
+	.nav-text {
+		font-size: 26rpx;
+		color: #374151;
+		font-weight: bold;
+	}
+
+	/* Banner 区域 - 移除 */
+	
+	/* 内容区域 - 网格布局 */
+	.content-scroll {
+		flex: 1; /* 占据剩余高度 */
+		overflow: hidden;
+	}
+
+	.content-area {
+		padding: 0 30rpx 140rpx; /* 底部留出空间给导航栏 */
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: space-between;
+	}
+
+	.stamp-card-container {
+		width: 31%; /* 三列布局 */
+		margin-bottom: 40rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.stamp-frame {
+		width: 100%;
+		height: 5.875rem;  /* 调整高度为5.875rem */
+		padding: 12rpx;
+		background-color: #fff;
+		
+		/* 技巧：使用双重虚线边框或 mask */
+		/* 方案B：使用 CSS mask (如果支持) */
+		/* 方案C：回归 dashed 但调整参数使其圆润 */
+		
+		border: 4rpx dashed #d1d5db;
+		border-radius: 8rpx;
+		
+		/* 关键：使用 radial-gradient 遮罩实现锯齿边缘 */
+		background: #fff;
+		--mask: 
+			radial-gradient(circle at 10rpx 10rpx, transparent 10rpx, black 10rpx) 
+			-10rpx -10rpx / 30rpx 30rpx repeat;
+		/* 注意：mask 兼容性可能有限，如果失效则回退到 dashed */
+		
+		/* 最终方案：使用 jagged border css generator 的思路 */
+		/* 由于环境限制，最稳妥的是使用 border-image 或 dashed。
+		   为了满足"不要实线"，我们改回 dashed 并调整使其看起来像齿孔 */
+		border-style: dashed;
+		border-width: 6rpx;
+		border-color: #e5e7eb; /* 浅灰色 */
+		box-shadow: none; /* 移除 box-shadow 因为它会暴露矩形轮廓 */
+		filter: drop-shadow(0 2rpx 4rpx rgba(0,0,0,0.1)); /* 使用 filter 加阴影 */
+		
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		box-sizing: border-box;
+		margin-bottom: 16rpx;
+	}
+
+	.stamp-image {
+		width: 95%;
+		height: 95%;  /* 减少高度从92%到72%（大约减少20rpx的效果） */
+		border-radius: 8rpx; /* 图片倒圆角 */
+		background-color: #eee;
+	}
+
+	.card-caption {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: 100%;
+	}
+
+	.caption-text {
+		font-size: 24rpx;
+		color: #6b7280; /* 中灰色 */
+		margin-bottom: 4rpx;
+		text-align: center;
+	}
+
+	/* 移除旧的布局样式 */
+	.divider-line { display: none; }
+	.photo-row { display: none; }
+	.stamp-card { display: none; }
+	.photo-placeholder { display: none; }
+	.center-column { display: none; }
+	.cloud-tag { display: none; }
+	.cloud-inner { display: none; }
+	.center-photo { display: none; }
+
+	/* 首页副标题 - 已移除 */
+	.section-header { display: none; }
+	.section-title { display: none; }
+
+	/* Banner 区域 */
+	.banner-area {
+		padding: 10rpx 30rpx;
+	}
+	.banner-frame {
+		width: 100%;
+		height: 320rpx;  /* 增加高度从260rpx到320rpx */
+		padding: 8rpx;
+		background-color: #fff;
+		box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.1);
+		/* 模拟邮票边缘 */
+		border: 4rpx dashed #cbd5e1; 
+		border-radius: 8rpx;
+		box-sizing: border-box;
+	}
+	.banner-swiper {
+		width: 100%;
+		height: 100%;
+		border-radius: 4rpx;
+		overflow: hidden;
+	}
+	.banner-image {
+		width: 100%;
+		height: 100%;
+		border-radius: 4rpx;
+		background-color: #eee; /* 图片加载前的占位色 */
+	}
+
+	/* 信息区域 */
+	.info-area {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		padding: 10rpx 40rpx 0;
+		/* 提升层级，确保内部的印章（下移后）能覆盖在 content-area 上 */
+		position: relative;
+		z-index: 20;
+	}
+	
+	.divider-container {
+		position: relative;
+		width: 100%;
+		height: 80rpx;
+		display: flex;
+		align-items: center;
+	}
+	
+	.divider-container::before {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 0;
+		right: 0;
+		height: 4rpx;
+		border-bottom: 4rpx dashed #546e7a;
+		z-index: 1;
+	}
+	
+	.memory-badge-center {
+		position: absolute;
+		left: 50%;
+		/* 外层边框 - 实线，不规则圆角模拟手绘感 */
+		border: 3rpx solid #546e7a;
+		padding: 6rpx;
+		/* 稍么不对称的圆角 */
+		border-radius: 24rpx 32rpx 20rpx 28rpx;
+		transform: translateX(-50%) rotate(-6deg);
+		background-color: #fcfbf6; /* 与背景色一致 */
+		box-shadow: 2rpx 2rpx 8rpx rgba(0,0,0,0.15);
+		z-index: 3;
+	}
+	
+	.memory-inner {
+		/* 内层边框 - 虚线 */
+		border: 2rpx dashed #546e7a;
+		padding: 4rpx 24rpx;
+		/* 跟随外层的圆角趋势 */
+		border-radius: 18rpx 24rpx 16rpx 20rpx;
+	}
+	
+	.memory-text {
+		font-size: 30rpx;
+		color: #546e7a;
+		font-weight: bold;
+		font-family: sans-serif; 
+	}
+	
+	/* 移除废弃的样式 */
+	.photo-card { display: none; }
+	.card { display: none; }
+	.card-tag { display: none; }
+	.rotate-tag { display: none; }
+	.card-image-placeholder { display: none; }
+	.card-content { display: none; }
+	.card-title { display: none; }
+	.card-info-row { display: none; }
+	.card-subtitle { display: none; }
+	.check-icon { display: none; }
+
+
+	/* 底部导航样式 */
+	.bottom-nav {
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		background-color: #fcfbf6;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-around;
+		padding: 20rpx 0 40rpx; /* safe area padding */
+		border-top: 1rpx solid #e2e8f0;
+		z-index: 100;
+	}
+
+	.bottom-nav .nav-icon {
+		font-size: 40rpx;
+		margin-bottom: 6rpx;
+	}
+
+	.bottom-nav .nav-text {
+		font-size: 20rpx;
+		font-weight: normal;
+	}
+
+	.nav-item.active .nav-icon {
+		color: #4a5568;
+	}
+</style>
