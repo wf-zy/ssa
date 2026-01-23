@@ -1,0 +1,654 @@
+<template>
+	<view class="page-container">
+		<!-- 顶部标题 -->
+		<view class="header">
+			<text class="page-title">旅行计划</text>
+			<view class="add-btn" @click="onAddPlan">
+				<text class="add-icon">+</text>
+			</view>
+		</view>
+
+		<scroll-view class="content-scroll" scroll-y="true" @scrolltolower="loadMoreHistory">
+			<!-- 待出行计划区域 -->
+			<view class="section">
+				<view class="section-header">
+					<text class="section-title">待出行</text>
+					<text class="section-subtitle">Upcoming</text>
+				</view>
+				
+				<view v-if="upcomingPlans.length > 0" class="upcoming-section">
+					<swiper class="upcoming-swiper" :indicator-dots="true" :autoplay="false" :circular="true" previous-margin="30rpx" next-margin="30rpx">
+						<swiper-item class="swiper-item" v-for="(item, index) in upcomingPlans" :key="index">
+							<view class="plan-card upcoming-card" @click="onPlanClick(item)">
+								<image class="card-bg" :src="item.cover" mode="aspectFill"></image>
+								<view class="card-overlay">
+									<view class="card-info">
+										<text class="plan-destination">{{ item.destination }}</text>
+										<text class="plan-date">{{ item.date }}</text>
+										<text class="plan-days">{{ item.days }}天行程</text>
+									</view>
+									<view class="card-status">
+										<text class="status-text">倒计时 {{ item.countdown }} 天</text>
+									</view>
+								</view>
+							</view>
+						</swiper-item>
+					</swiper>
+				</view>
+				<view v-else class="empty-state">
+					<text class="empty-text">暂无待出行计划</text>
+				</view>
+			</view>
+
+			<!-- 历史计划区域 -->
+			<view class="section history-section">
+				<view class="section-header">
+					<text class="section-title">历史计划</text>
+					<text class="section-subtitle">History</text>
+				</view>
+
+				<view class="history-list">
+					<view class="history-item" v-for="(item, index) in historyPlans" :key="index">
+						<image class="history-cover" :src="item.cover" mode="aspectFill"></image>
+						<view class="history-info">
+							<text class="history-title">{{ item.destination }} - {{ item.title }}</text>
+							<text class="history-date">{{ item.date }}</text>
+							<view class="history-tags">
+								<text class="tag" v-for="(tag, tIndex) in item.tags" :key="tIndex">{{ tag }}</text>
+							</view>
+						</view>
+						<text class="history-arrow">›</text>
+					</view>
+				</view>
+				
+				<view class="loading-more">
+					<text class="loading-text">{{ hasMore ? '加载中...' : '没有更多了' }}</text>
+				</view>
+			</view>
+		</scroll-view>
+
+		<!-- 编辑弹窗 -->
+		<view v-if="showModal" class="modal-mask">
+			<view class="modal-content">
+				<view class="modal-header">
+					<text class="modal-title">{{ editingId == 0 ? '新增计划' : '编辑计划' }}</text>
+				</view>
+				<view class="modal-body">
+					<view class="form-item">
+						<text class="label">封面</text>
+						<view class="cover-uploader" @click="chooseCover">
+							<image v-if="editingCover" :src="editingCover" mode="aspectFill" class="cover-preview"></image>
+							<view v-else class="upload-placeholder">
+								<text class="upload-icon">+</text>
+								<text class="upload-text">点击上传封面</text>
+							</view>
+						</view>
+					</view>
+					<view class="form-item">
+						<text class="label">目的地</text>
+						<input class="input" v-model="editingDestination" placeholder="请输入目的地" />
+					</view>
+					<view class="form-item">
+						<text class="label">出发日期</text>
+						<picker mode="date" :value="editingDate" @change="onDateChange">
+							<view class="input picker-input">
+								<text>{{ editingDate || '请选择日期' }}</text>
+							</view>
+						</picker>
+					</view>
+					<view class="form-item">
+						<text class="label">行程天数</text>
+						<input class="input" type="number" v-model="editingDays" placeholder="请输入天数" />
+					</view>
+				</view>
+				<view class="modal-footer">
+					<button class="btn btn-cancel" @click="closeModal">取消</button>
+					<button class="btn btn-confirm" @click="savePlan">保存</button>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	type PlanItem = {
+		id: number
+		destination: string
+		title: string
+		date: string
+		days: number
+		cover: string
+		countdown?: number
+		tags?: string[]
+	}
+
+	export default {
+		data() {
+			return {
+				upcomingPlans: [] as PlanItem[],
+				historyPlans: [] as PlanItem[],
+				page: 1,
+				pageSize: 10,
+				hasMore: true,
+				isLoading: false,
+				showModal: false,
+				editingId: 0,
+				editingDestination: '',
+				editingDate: '',
+				editingDays: '',
+				editingCover: ''
+			}
+		},
+		onLoad() {
+			this.loadData()
+		},
+		methods: {
+			chooseCover() {
+				uni.chooseImage({
+					count: 1,
+					success: (res) => {
+						this.editingCover = res.tempFilePaths[0]
+					}
+				})
+			},
+			onDateChange(e : any) {
+				this.editingDate = e.detail.value
+			},
+			onAddPlan() {
+				this.editingId = 0
+				this.editingDestination = ''
+				this.editingDate = ''
+				this.editingDays = ''
+				this.editingCover = ''
+				this.showModal = true
+			},
+			onPlanClick(item: PlanItem) {
+				this.editingId = item.id
+				this.editingDestination = item.destination
+				this.editingDate = item.date
+				this.editingDays = item.days + '' // Convert number to string
+				this.editingCover = item.cover
+				this.showModal = true
+			},
+			closeModal() {
+				this.showModal = false
+			},
+			savePlan() {
+				if (this.editingId == 0) {
+					// Add new plan
+					const days = parseInt(this.editingDays)
+					const newPlan = {
+						id: Date.now(),
+						destination: this.editingDestination,
+						title: '新计划',
+						date: this.editingDate,
+						days: !Number.isNaN(days) ? days : 1,
+						cover: this.editingCover || 'https://picsum.photos/600/300?random=' + Date.now(),
+						countdown: 0
+					} as PlanItem
+					this.upcomingPlans.unshift(newPlan)
+				} else {
+					// Edit existing plan
+					const index = this.upcomingPlans.findIndex((p): boolean => p.id == this.editingId)
+					if (index > -1) {
+						const item = this.upcomingPlans[index]
+						item.destination = this.editingDestination
+						item.date = this.editingDate
+						item.cover = this.editingCover
+						// Try to parse, fallback to original if NaN
+						const days = parseInt(this.editingDays)
+						if (!Number.isNaN(days)) {
+							item.days = days
+						}
+						// Update array item to trigger reactivity if needed
+						this.upcomingPlans[index] = item
+					}
+				}
+				this.showModal = false
+			},
+			loadData() {
+				this.loadUpcomingPlans()
+				this.loadHistoryPlans()
+			},
+			loadUpcomingPlans() {
+				// 模拟待出行数据
+				this.upcomingPlans = [
+					{
+						id: 1,
+						destination: '云南·大理',
+						title: '去有风的地方',
+						date: '2026-05-01',
+						days: 5,
+						cover: 'https://picsum.photos/600/300?random=101',
+						countdown: 12
+					} as PlanItem,
+					{
+						id: 2,
+						destination: '日本·京都',
+						title: '古都红叶狩',
+						date: '2026-11-15',
+						days: 7,
+						cover: 'https://picsum.photos/600/300?random=102',
+						countdown: 210
+					} as PlanItem,
+					{
+						id: 3,
+						destination: '海南·三亚',
+						title: '冬日暖阳',
+						date: '2026-12-20',
+						days: 4,
+						cover: 'https://picsum.photos/600/300?random=103',
+						countdown: 245
+					} as PlanItem
+				]
+			},
+			loadHistoryPlans() {
+				if (this.isLoading || !this.hasMore) return
+				this.isLoading = true
+
+				// 模拟异步请求
+				setTimeout(() => {
+					const newItems = [] as PlanItem[]
+					const startId = (this.page - 1) * this.pageSize + 2
+					
+					for (let i = 0; i < this.pageSize; i++) {
+						if (this.historyPlans.length + i >= 25) break // 模拟总共25条数据
+						
+						newItems.push({
+							id: startId + i,
+							destination: i % 2 == 0 ? '杭州' : '厦门',
+							title: i % 2 == 0 ? '西湖踏春之旅' : '鼓浪屿看海',
+							date: '2025-10-0' + ((i % 9) + 1),
+							days: 3,
+							cover: `https://picsum.photos/200/200?random=${startId + i}`,
+							tags: ['美食', '摄影', '休闲']
+						} as PlanItem)
+					}
+
+					if (newItems.length < this.pageSize) {
+						this.hasMore = false
+					}
+
+					this.historyPlans.push(...newItems)
+					this.page++
+					this.isLoading = false
+				}, 500)
+			},
+			loadMoreHistory() {
+				this.loadHistoryPlans()
+			}
+		}
+	}
+</script>
+
+<style>
+	page {
+		background-color: #fcfbf6;
+		height: 100%;
+	}
+
+	.page-container {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}
+
+	.header {
+		padding: 40rpx 30rpx 20rpx;
+		background-color: #fcfbf6;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.page-title {
+		font-size: 48rpx;
+		font-weight: bold;
+		color: #333;
+		font-family: serif;
+	}
+	
+	.add-btn {
+		width: 60rpx;
+		height: 60rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: 30rpx;
+		background-color: rgba(0,0,0,0.05);
+	}
+	
+	.add-icon {
+		font-size: 40rpx;
+		color: #333;
+		line-height: 1;
+		margin-top: -4rpx;
+	}
+
+	.content-scroll {
+		flex: 1;
+		height: 0; /* 这里的 height: 0 是 flex 布局中让 scroll-view 正确滚动的关键 */
+	}
+
+	.section {
+		padding: 30rpx;
+		margin-bottom: 20rpx;
+	}
+
+	.section-header {
+		display: flex;
+		align-items: baseline;
+		margin-bottom: 20rpx;
+	}
+
+	.section-title {
+		font-size: 36rpx;
+		font-weight: bold;
+		color: #333;
+		margin-right: 16rpx;
+	}
+
+	.section-subtitle {
+		font-size: 24rpx;
+		color: #999;
+		font-weight: normal;
+	}
+
+	/* 待出行卡片样式 */
+	.upcoming-section {
+		width: 100%;
+	}
+
+	.upcoming-swiper {
+		height: 400rpx;
+	}
+
+	.swiper-item {
+		padding: 0 10rpx;
+		box-sizing: border-box;
+	}
+
+	.plan-card {
+		height: 360rpx;
+		border-radius: 24rpx;
+		overflow: hidden;
+		position: relative;
+		box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.1);
+	}
+
+	.card-bg {
+		width: 100%;
+		height: 100%;
+		background-color: #eee;
+	}
+
+	.card-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.6));
+		padding: 30rpx;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+	}
+
+	.card-info {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.plan-destination {
+		font-size: 44rpx;
+		font-weight: bold;
+		color: #fff;
+		margin-bottom: 8rpx;
+		text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.3);
+	}
+
+	.plan-date {
+		font-size: 28rpx;
+		color: rgba(255,255,255,0.9);
+	}
+	
+	.plan-days {
+		font-size: 24rpx;
+		color: rgba(255,255,255,0.8);
+		margin-top: 4rpx;
+	}
+
+	.card-status {
+		align-self: flex-end;
+		background-color: rgba(255,255,255,0.2);
+		backdrop-filter: blur(10px);
+		padding: 10rpx 24rpx;
+		border-radius: 30rpx;
+		border: 1rpx solid rgba(255,255,255,0.3);
+	}
+
+	.status-text {
+		color: #fff;
+		font-size: 26rpx;
+		font-weight: bold;
+	}
+
+	.empty-state {
+		height: 200rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		background-color: #fff;
+		border-radius: 16rpx;
+		border: 2rpx dashed #ddd;
+	}
+
+	.empty-text {
+		color: #999;
+		font-size: 28rpx;
+	}
+
+	/* 历史列表样式 */
+	.history-list {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.history-item {
+		display: flex;
+		flex-direction: row;
+		padding: 24rpx;
+		background-color: #fff;
+		border-radius: 16rpx;
+		margin-bottom: 20rpx;
+		box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.03);
+		align-items: center;
+	}
+
+	.history-cover {
+		width: 120rpx;
+		height: 120rpx;
+		border-radius: 12rpx;
+		background-color: #eee;
+		margin-right: 24rpx;
+	}
+
+	.history-info {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	.history-title {
+		font-size: 30rpx;
+		font-weight: bold;
+		color: #333;
+		margin-bottom: 8rpx;
+	}
+
+	.history-date {
+		font-size: 24rpx;
+		color: #999;
+		margin-bottom: 12rpx;
+	}
+
+	.history-tags {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 10rpx;
+	}
+
+	.tag {
+		font-size: 20rpx;
+		color: #546e7a;
+		background-color: #edf2f7;
+		padding: 4rpx 12rpx;
+		border-radius: 8rpx;
+	}
+
+	.history-arrow {
+		font-size: 32rpx;
+		color: #ccc;
+		margin-left: 16rpx;
+	}
+
+	.loading-more {
+		padding: 30rpx 0;
+		display: flex;
+		justify-content: center;
+	}
+
+	.loading-text {
+		font-size: 24rpx;
+		color: #999;
+	}
+
+	/* 弹窗样式 */
+	.modal-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.6);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 999;
+	}
+
+	.modal-content {
+		width: 600rpx;
+		background-color: #fff;
+		border-radius: 24rpx;
+		overflow: hidden;
+		padding: 40rpx;
+	}
+
+	.modal-header {
+		margin-bottom: 40rpx;
+		align-items: center;
+	}
+
+	.modal-title {
+		font-size: 36rpx;
+		font-weight: bold;
+		color: #333;
+		text-align: center;
+		width: 100%;
+	}
+
+	.form-item {
+		margin-bottom: 30rpx;
+	}
+
+	.label {
+		font-size: 28rpx;
+		color: #666;
+		margin-bottom: 12rpx;
+		display: block;
+	}
+
+	.input {
+		height: 80rpx;
+		background-color: #f5f7fa;
+		border-radius: 12rpx;
+		padding: 0 24rpx;
+		font-size: 28rpx;
+		color: #333;
+	}
+
+	.modal-footer {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		margin-top: 50rpx;
+		gap: 30rpx;
+	}
+
+	.btn {
+		flex: 1;
+		height: 80rpx;
+		border-radius: 40rpx;
+		font-size: 30rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: none;
+	}
+
+	.btn-cancel {
+		background-color: #f5f7fa;
+		color: #666;
+	}
+
+	.btn-confirm {
+		background-color: #546e7a;
+		color: #fff;
+	}
+
+	.cover-uploader {
+		width: 100%;
+		height: 300rpx;
+		background-color: #f5f7fa;
+		border-radius: 12rpx;
+		overflow: hidden;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: 2rpx dashed #ddd;
+		margin-bottom: 20rpx;
+	}
+
+	.cover-preview {
+		width: 100%;
+		height: 100%;
+	}
+
+	.upload-placeholder {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.upload-icon {
+		font-size: 60rpx;
+		color: #999;
+		margin-bottom: 10rpx;
+	}
+
+	.upload-text {
+		font-size: 24rpx;
+		color: #999;
+	}
+	
+	.picker-input {
+		justify-content: flex-start;
+		align-items: center;
+		display: flex;
+	}
+</style>

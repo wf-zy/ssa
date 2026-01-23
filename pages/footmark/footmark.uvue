@@ -1,0 +1,161 @@
+<template>
+	<view class="page-container">
+		<view class="map-container">
+			<map class="map" :latitude="latitude" :longitude="longitude" :scale="scale" :markers="markers"></map>
+		</view>
+		<view class="footer-stats">
+			<view class="stats-card">
+				<text class="stats-title">我的足迹</text>
+				<view class="stats-row">
+					<text class="stats-label">已点亮</text>
+					<text class="stats-number">{{ visitedCount }}</text>
+					<text class="stats-label">个城市</text>
+				</view>
+				<text class="stats-desc">世界那么大，继续去探索吧！</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				latitude: 34.341568,
+				longitude: 108.940174, // 西安中心点，适合显示中国地图
+				scale: 4,
+				markers: [] as any[]
+			}
+		},
+		computed: {
+			visitedCount(): number {
+				return this.markers.length
+			}
+		},
+		onLoad() {
+			this.initMarkers()
+		},
+		methods: {
+			initMarkers() {
+				// 模拟一些去过的城市数据
+				// 注意：在实际应用中，iconPath 建议使用本地路径或网络路径
+				// 这里为了演示红点效果，我们尽量使用简单的标记
+				const cities = [
+					{ id: 1, name: '北京', lat: 39.9042, lng: 116.4074 },
+					{ id: 2, name: '上海', lat: 31.2304, lng: 121.4737 },
+					{ id: 3, name: '成都', lat: 30.5728, lng: 104.0668 },
+					{ id: 4, name: '三亚', lat: 18.2528, lng: 109.5119 },
+					{ id: 5, name: '拉萨', lat: 29.6520, lng: 91.1721 },
+					{ id: 6, name: '西安', lat: 34.3416, lng: 108.9398 }
+				]
+
+				const newMarkers = [] as any[]
+				
+				cities.forEach((city) => {
+					// 使用 callout 模拟红点或者直接显示地名
+					const marker = {
+						id: city.id,
+						latitude: city.lat,
+						longitude: city.lng,
+						title: city.name,
+						width: 20,
+						height: 20,
+						// 如果有红点图片，可以设置 iconPath: '/static/red_dot.png'
+						// 这是一个网络红点图标示例
+						iconPath: 'https://img.icons8.com/emoji/48/red-circle-emoji.png',
+						callout: {
+							content: city.name,
+							color: '#ffffff',
+							fontSize: 12,
+							borderRadius: 4,
+							bgColor: '#f56c6c', // 红色背景
+							padding: 6,
+							display: 'ALWAYS'
+						}
+					}
+					newMarkers.push(marker)
+				})
+				
+				this.markers = newMarkers
+			}
+		}
+	}
+</script>
+
+<style>
+	page {
+		height: 100%;
+	}
+
+	.page-container {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		background-color: #fcfbf6;
+	}
+
+	.map-container {
+		flex: 1;
+		width: 100%;
+		position: relative;
+	}
+
+	.map {
+		width: 100%;
+		height: 100%;
+	}
+
+	.footer-stats {
+		height: 260rpx;
+		background-color: #ffffff;
+		border-top-left-radius: 40rpx;
+		border-top-right-radius: 40rpx;
+		box-shadow: 0 -4rpx 20rpx rgba(0,0,0,0.05);
+		position: relative;
+		margin-top: -30rpx; /* 让卡片稍微覆盖地图一点 */
+		z-index: 10;
+		padding: 40rpx;
+		display: flex;
+		justify-content: center;
+	}
+
+	.stats-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: 100%;
+	}
+
+	.stats-title {
+		font-size: 32rpx;
+		color: #333;
+		font-weight: bold;
+		margin-bottom: 30rpx;
+	}
+
+	.stats-row {
+		display: flex;
+		flex-direction: row;
+		align-items: baseline;
+		margin-bottom: 20rpx;
+	}
+
+	.stats-label {
+		font-size: 28rpx;
+		color: #666;
+	}
+
+	.stats-number {
+		font-size: 80rpx;
+		font-weight: bold;
+		color: #e74c3c; /* 红色数字 */
+		margin: 0 16rpx;
+		font-family: 'DIN Alternate', sans-serif;
+	}
+
+	.stats-desc {
+		font-size: 24rpx;
+		color: #999;
+		margin-top: 10rpx;
+	}
+</style>

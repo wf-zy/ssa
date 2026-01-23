@@ -7,6 +7,20 @@
 			}
 		},
 		{
+			"path": "pages/footmark/footmark",
+			"style": {
+				"navigationBarTitleText": "足迹地图",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/plan/plan",
+			"style": {
+				"navigationBarTitleText": "旅行计划",
+				"navigationStyle": "custom"
+			}
+		},
+		{
 			"path": "pages/my/my",
 			"style": {
 				"navigationBarTitleText": "我的"
@@ -22,6 +36,10 @@
 			{
 				"pagePath": "pages/index/index",
 				"text": "首页"
+			},
+			{
+				"pagePath": "pages/plan/plan",
+				"text": "计划"
 			},
 			{
 				"pagePath": "pages/my/my",

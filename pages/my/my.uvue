@@ -2,26 +2,24 @@
 	<view class="container">
 		<!-- 顶部用户信息区域 -->
 		<view class="profile-section">
-			<view class="avatar-container" @click="changeAvatar">
-				<image v-if="userInfo.avatar" :src="userInfo.avatar" class="avatar" />
-				<view v-else class="avatar-placeholder">
-					<text class="avatar-icon">👤</text>
+			<view class="user-info-box">
+				<view class="avatar-container" @click="changeAvatar">
+					<image v-if="userInfo.avatar" :src="userInfo.avatar" class="avatar" />
+					<view v-else class="avatar-placeholder">
+						<text class="avatar-icon">👤</text>
+					</view>
 				</view>
-			</view>
-			<text class="username">{{ userInfo.nickname || '未设置昵称' }}</text>
-		</view>
-		
-		<!-- 操作按钮区域 - 更换头像和修改昵称在同一行 -->
-		<view class="actions-section">
-			<view class="action-row">
-				<view class="action-item" @click="changeAvatar">
-					<text class="action-text">更换头像</text>
-					<text class="arrow">›</text>
-				</view>
-				<view class="divider"></view>
-				<view class="action-item" @click="changeNickname">
-					<text class="action-text">修改昵称</text>
-					<text class="arrow">›</text>
+				<text class="username">{{ userInfo.nickname || '未设置昵称' }}</text>
+				
+				<!-- 快捷操作按钮 -->
+				<view class="quick-actions">
+					<view class="quick-btn" @click="changeAvatar">
+						<text class="quick-btn-text">更换头像</text>
+					</view>
+					<view class="quick-divider"></view>
+					<view class="quick-btn" @click="changeNickname">
+						<text class="quick-btn-text">修改昵称</text>
+					</view>
 				</view>
 			</view>
 		</view>
@@ -47,6 +45,40 @@
 			</view>
 		</view>
 		
+		<!-- 通用设置区域 -->
+		<view class="info-section">
+			<view class="info-item">
+				<text class="info-label">消息通知</text>
+				<view class="info-value">
+					<switch :checked="settings.notification" @change="toggleNotification" color="#546e7a" style="transform:scale(0.8)" />
+				</view>
+			</view>
+			
+			<view class="info-item" @click="clearCache">
+				<text class="info-label">清除缓存</text>
+				<text class="info-value">{{ settings.cacheSize }}</text>
+				<text class="arrow">›</text>
+			</view>
+			
+			<view class="info-item" @click="showAbout">
+				<text class="info-label">关于我们</text>
+				<text class="info-value">v1.0.0</text>
+				<text class="arrow">›</text>
+			</view>
+			
+			<view class="info-item" @click="showPrivacy">
+				<text class="info-label">隐私政策</text>
+				<text class="info-value"></text>
+				<text class="arrow">›</text>
+			</view>
+			
+			<view class="info-item" @click="showAgreement">
+				<text class="info-label">用户协议</text>
+				<text class="info-value"></text>
+				<text class="arrow">›</text>
+			</view>
+		</view>
+		
 		<!-- 账号操作区域 -->
 		<view class="account-section">
 			<view class="account-item logout-item" @click="logout">
@@ -68,14 +100,74 @@
 					nickname: '游客',
 					phone: '138****8888',
 					registerDate: '2023-01-15'
+				},
+				settings: {
+					notification: true,
+					cacheSize: '12.5MB'
 				}
 			}
 		},
 		onLoad() {
 			// 页面加载时获取用户信息
 			this.loadUserInfo();
+			// 获取缓存大小
+			this.getCacheSize();
 		},
 		methods: {
+			getCacheSize() {
+				// 模拟获取缓存大小
+				// 实际可以使用 uni.getStorageInfoSync().currentSize 计算
+				setTimeout(() => {
+					this.settings.cacheSize = '12.5MB';
+				}, 500);
+			},
+			toggleNotification(e : any) {
+				this.settings.notification = e.detail.value;
+				uni.showToast({
+					title: this.settings.notification ? '已开启通知' : '已关闭通知',
+					icon: 'none'
+				});
+			},
+			clearCache() {
+				uni.showModal({
+					title: '提示',
+					content: '确定要清除缓存吗？',
+					success: (res) => {
+						if (res.confirm) {
+							uni.showLoading({
+								title: '清理中...'
+							});
+							setTimeout(() => {
+								uni.hideLoading();
+								this.settings.cacheSize = '0KB';
+								uni.showToast({
+									title: '清除成功',
+									icon: 'success'
+								});
+							}, 1500);
+						}
+					}
+				});
+			},
+			showAbout() {
+				uni.showModal({
+					title: '关于我们',
+					content: 'SSA旅行助手 v1.0.0\n\n致力于为您提供最优质的旅行计划与记录服务。',
+					showCancel: false
+				});
+			},
+			showPrivacy() {
+				uni.showToast({
+					title: '跳转至隐私政策',
+					icon: 'none'
+				});
+			},
+			showAgreement() {
+				uni.showToast({
+					title: '跳转至用户协议',
+					icon: 'none'
+				});
+			},
 			loadUserInfo() {
 				// 模拟加载用户信息
 				// 在实际项目中，这里应该是从本地存储或服务器获取用户信息
@@ -242,7 +334,7 @@
 
 <style>
 	/* 页面整体样式 */
-	container {
+	.container {
 		display: flex;
 		flex-direction: column;
 		min-height: 100vh;
@@ -251,11 +343,18 @@
 	
 	/* 顶部用户信息区域 */
 	.profile-section {
-		background-color: #ffffff;
+		background-color: #e3f2fd;
 		padding: 60rpx 40rpx 40rpx;
 		text-align: center;
 		margin-bottom: 20rpx;
-		box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
+		border-bottom-left-radius: 30rpx;
+		border-bottom-right-radius: 30rpx;
+	}
+	
+	.user-info-box {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
 	}
 	
 	.avatar-container {
@@ -263,85 +362,79 @@
 	}
 	
 	.avatar {
-		width: 120rpx;
-		height: 120rpx;
+		width: 140rpx;
+		height: 140rpx;
 		border-radius: 50%;
-		border: 4rpx solid #e0e0e0;
+		border: 6rpx solid #ffffff;
 		object-fit: cover;
+		box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
 	}
 	
 	.avatar-placeholder {
-		width: 120rpx;
-		height: 120rpx;
+		width: 140rpx;
+		height: 140rpx;
 		border-radius: 50%;
-		border: 4rpx solid #e0e0e0;
+		border: 6rpx solid #ffffff;
 		background-color: #f0f0f0;
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.1);
 	}
 	
 	.avatar-icon {
-		font-size: 60rpx;
+		font-size: 70rpx;
 		color: #aaa;
 	}
 	
 	.username {
-		font-size: 36rpx;
+		font-size: 40rpx;
 		font-weight: bold;
 		color: #333;
 		display: block;
 		margin-top: 10rpx;
+		margin-bottom: 30rpx;
 	}
 	
-	/* 操作按钮区域 */
-	.actions-section {
-		background-color: #ffffff;
-		margin: 0 20rpx 20rpx;
-		border-radius: 16rpx;
-		overflow: hidden;
-		box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
-	}
-	
-	.action-row {
+	/* 快捷操作按钮 */
+	.quick-actions {
 		display: flex;
+		flex-direction: row;
+		justify-content: center;
 		align-items: center;
+		width: 100%;
+		padding-top: 20rpx;
 	}
 	
-	.action-item {
+	.quick-btn {
+		flex: 1;
 		display: flex;
-		justify-content: space-between;
+		justify-content: center;
 		align-items: center;
-		padding: 30rpx 40rpx;
-		border-bottom: 1rpx solid #f0f0f0;
-		background-color: #ffffff;
+		padding: 10rpx 0;
 	}
 	
-	.action-item:last-child {
-		border-bottom: none;
+	.quick-btn:active {
+		opacity: 0.7;
 	}
 	
-	.action-text {
-		font-size: 30rpx;
-		color: #333;
+	.quick-btn-text {
+		font-size: 28rpx;
+		color: #546e7a;
+		font-weight: 500;
 	}
 	
-	.arrow {
-		font-size: 36rpx;
-		color: #ccc;
-	}
-	
-	.divider {
-		width: 1rpx;
-		height: 40rpx;
-		background-color: #f0f0f0;
-		margin: 0 20rpx;
+	.quick-divider {
+		width: 2rpx;
+		height: 30rpx;
+		background-color: #b0bec5;
+		margin: 0 30rpx;
 	}
 	
 	/* 用户信息区域 */
 	.info-section {
 		background-color: #ffffff;
-		margin: 0 20rpx 20rpx;
+		margin: 20rpx 20rpx;
 		border-radius: 16rpx;
 		overflow: hidden;
 		box-shadow: 0 2rpx 10rpx rgba(0,0,0,0.05);
@@ -349,6 +442,7 @@
 
 	.info-item {
 		display: flex;
+		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
 		padding: 30rpx 40rpx;
@@ -362,15 +456,25 @@
 	.info-label {
 		font-size: 30rpx;
 		color: #333;
-		text-align: left;  /* 左对齐 */
+		text-align: left;
+		min-width: 120rpx;
 	}
 
 	.info-value {
 		font-size: 28rpx;
 		color: #666;
-		margin-left: 20rpx;  /* 左边距替代右边距 */
+		margin-left: 20rpx;
 		flex: 1;
 		text-align: right;
+		display: flex;
+		justify-content: flex-end;
+		align-items: center;
+	}
+	
+	.arrow {
+		font-size: 36rpx;
+		color: #ccc;
+		margin-left: 10rpx;
 	}
 	
 	/* 账号操作区域 */
@@ -388,10 +492,9 @@
 		border-radius: 12rpx;
 		font-size: 30rpx;
 		display: flex;
-		justify-content: flex-start; /* 左对齐 */
+		justify-content: center;
 		align-items: center;
 		border: none;
-		padding-left: 30rpx; /* 添加左边距 */
 	}
 
 	.logout-item {
@@ -408,6 +511,6 @@
 	.account-text {
 		font-size: 30rpx;
 		color: inherit;
-		text-align: left; /* 文字左对齐 */
+		text-align: center;
 	}
 </style>
